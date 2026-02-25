@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file alias="Main.qml">qml/Main.qml</file>
+        <file>qml/components/SpeedGauge.qml</file>
+        <file>qml/pages/DashboardPage.qml</file>
+        <file>qml/components/SocBar.qml</file>
+    </qresource>
+</RCC>
