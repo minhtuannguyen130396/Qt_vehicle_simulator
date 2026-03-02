@@ -36,4 +36,5 @@ signals:
 private:
     mq::MessageBus& bus_;
     QTimer dispatchTimer_;
+    QTimer syncTimer_;
 };

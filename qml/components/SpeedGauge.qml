@@ -72,7 +72,7 @@ Item {
         text: Math.round(root.value)
         font.pixelSize: 34
         font.bold: true
-        color: "#eaeaea"
+        color: "#FF0000"
     }
 
     Text {

@@ -10,7 +10,20 @@ UiBackend::UiBackend(mq::MessageBus& bus, QObject* parent)
     connect(&dispatchTimer_, &QTimer::timeout, this, [this]{
         bus_.uiPumpResponses(16);
     });
+    connect(&syncTimer_, &QTimer::timeout,this, [this]{
+        mq::Snapshot snapshot;
+        bus_.enqueueRequest(mq::TaskType::GetSnapshot, std::move(snapshot), [this](const mq::Response& r){
+            //Call back sync request
+            emit snapshotUpdated(
+                r.snapshot.speed,
+                QString::fromStdString(r.snapshot.sn1), r.snapshot.v1, r.snapshot.i1, r.snapshot.t1, r.snapshot.soc1,
+                QString::fromStdString(r.snapshot.sn2), r.snapshot.v2, r.snapshot.i2, r.snapshot.t2, r.snapshot.soc2,
+                r.snapshot.motorCurrent, r.snapshot.motorTemp
+                );
+        });
+    });
     dispatchTimer_.start(16); // ~60fps
+    syncTimer_.start(1000); // once per second
 }
 
 void UiBackend::refresh()
