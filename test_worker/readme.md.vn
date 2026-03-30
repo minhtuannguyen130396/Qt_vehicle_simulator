@@ -1,0 +1,46 @@
+# Ví Dụ Test / Cách Sử Dụng
+
+Thư mục này chứa một ví dụ chạy độc lập, dùng để minh họa cách sử dụng **Device (layer 1)** thông qua **MessageBus** trong [`lib/messageQueue/`](E:\Qt_vehicle_simulator\lib\messageQueue).
+
+## Nội Dung Minh Họa
+
+- Tạo `MessageBus`
+- Tạo simulated board drivers (layer 3) và middleware `HardwareService` (layer 2)
+- Khởi động worker nền `Device`
+- Chạy worker theo mô hình Option A:
+  - một worker thread duy nhất
+  - đợi bằng `condition_variable` với timed wait
+- Gửi các lệnh bất đồng bộ:
+  - `GetSnapshot`
+  - `SetBattery1Serial`
+  - `SetMotorSpeed`
+- Quan sát hành vi delayed `SET`:
+  - response trả về sau khoảng `100 ms`
+  - snapshot được cập nhật ngay khi thao tác ghi mô phỏng hoàn tất
+
+## Chạy
+
+Từ thư mục gốc của dự án:
+
+```bash
+cmake -S . -B build
+cmake --build build -j
+./build/test_device
+```
+
+## Mô Hình Tương Tác
+
+Worker được gọi thông qua `MessageBus`, không gọi trực tiếp xuống tầng phần cứng.
+
+- `GetSnapshot`
+  - Yêu cầu snapshot mới nhất của phần cứng mô phỏng
+- `SetBattery1Serial`
+  - Lên lịch cập nhật trễ cho serial của battery 1
+- `SetMotorSpeed`
+  - Lên lịch cập nhật trễ cho tốc độ motor
+
+Response được trả về bất đồng bộ thông qua callback đăng ký cùng request.
+
+## Mục Đích Của Thư Mục Này
+
+Ví dụ này tách riêng luồng worker và queue khỏi Qt/QML UI để có thể kiểm tra độc lập mô hình đa luồng, delayed operation và cơ chế request/response.

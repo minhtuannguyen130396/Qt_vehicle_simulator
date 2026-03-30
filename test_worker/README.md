@@ -1,17 +1,22 @@
 # Test / Usage Example
 
-This folder contains a small runnable example showing how to use the **Device (layer 1)** through the **MessageBus (lib/messageQueue)**.
+This folder contains a small runnable example that shows how to use the **Device (layer 1)** through the **MessageBus** in [`lib/messageQueue/`](E:\Qt_vehicle_simulator\lib\messageQueue).
 
-## What it demonstrates
+## What It Demonstrates
 
-- Create the `MessageBus`
-- Create simulated board drivers (layer 3) and `HardwareService` middleware (layer 2)
-- Start the `Device` background worker (Option A: single thread + condition_variable timed-wait)
-- Send commands:
+- Creating a `MessageBus`
+- Creating simulated board drivers (layer 3) and the `HardwareService` middleware (layer 2)
+- Starting the `Device` background worker
+- Running the worker with the Option A model:
+  - single worker thread
+  - `condition_variable` timed wait
+- Sending commands asynchronously:
   - `GetSnapshot`
   - `SetBattery1Serial`
   - `SetMotorSpeed`
-- Observe that **SET responses are returned only after ~100ms**, and that **the snapshot reflects the new value immediately when the SET finishes**.
+- Observing delayed `SET` completion:
+  - responses are returned after about `100 ms`
+  - the snapshot is updated as soon as the delayed write finishes
 
 ## Run
 
@@ -23,23 +28,19 @@ cmake --build build -j
 ./build/test_device
 ```
 
-## How to call "set" and "get"
+## Interaction Model
 
-You call the device via `MessageBus::sendRequest(...)`:
+The worker is called through `MessageBus`, not directly through the hardware layer.
 
-- **Get snapshot**:
-  - `cmd = mq::Command::GetSnapshot`
-  - `intValue = 0`
-  - `strValue = ""`
+- `GetSnapshot`
+  - Requests the latest simulated hardware snapshot
+- `SetBattery1Serial`
+  - Schedules a delayed update for battery 1 serial number
+- `SetMotorSpeed`
+  - Schedules a delayed update for motor speed
 
-- **Set battery serial**:
-  - `cmd = mq::Command::SetBattery1Serial` or `SetBattery2Serial`
-  - `intValue = 0`
-  - `strValue = "NEW-SERIAL"`
+Responses are delivered asynchronously through the callback registered on the request.
 
-- **Set motor speed**:
-  - `cmd = mq::Command::SetMotorSpeed`
-  - `intValue = targetSpeedRpm`
-  - `strValue = ""`
+## Why This Folder Exists
 
-Responses arrive asynchronously via the callback you provide to `sendRequest`.
+This example isolates the worker and queue flow from the Qt/QML UI so the threading model, delayed operations, and request/response behavior can be validated independently.
